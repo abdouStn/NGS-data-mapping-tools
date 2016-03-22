@@ -19,17 +19,14 @@ bool SAcomp::operator()(size_t a, size_t b) const
 {
 	size_t n = es.totalLength();
 	
-	while((a<n) && (b<n) && (es[a]==es[b]))
+	while((a<n) && (b<n) &&(es[a] == es[b])) 
 	{
-		a++;
-		b++;
+		a++; b++ ;
 	}
-    return (a>=n) || ((b<n) && (es[a]<es[b]));
-    //return ((a == n) || (es[a]<es[b]));
-
+    return (a>=n)||((b<n) && (es[a]<es[b]));
 }
 
-vector<size_t> builtSA(const SequenceFastX & s)   // construction de la table des suffixes
+vector<size_t> buildSA(const SequenceFastX & s)   // construction de la table des suffixes
 {
 	size_t n = s.encodage->totalLength();
 	vector<size_t> SA(n);
@@ -37,9 +34,9 @@ vector<size_t> builtSA(const SequenceFastX & s)   // construction de la table de
 	//iota(SA.begin(), SA.end(), 0);   // methode de la STL,exactement comme une boucle for .
 	for (size_t i = 0; i < n; ++i)
 	{
-		SA.push_back(i);
+		SA[i] = i;
 	}
-	sort(SA.begin(), SA.end(), SAcomp(*(s.encodage)) );      // Tri rapide, dernier arg donne ordre de tri, boolean. () appelle l'operator defini dans la struct
+	sort(SA.begin(), SA.end(), SAcomp(*(s.encodage)));      // Tri rapide, dernier arg donne ordre de tri, boolean. () appelle l'operator defini dans la struct
 												// ordre lexicographique
 												// SAcomp(size_t a, size_t b) : B renvoie a < b (lexico))
 										        // va renvoyer pour ROUDOUDOU = 6,3,7,4,1,0,8,5,2
@@ -47,23 +44,24 @@ vector<size_t> builtSA(const SequenceFastX & s)   // construction de la table de
 }
 
 
-vector<size_t> buildLCP(const string &s, const vector<size_t> &SA)
+vector<size_t> buildLCP(const EncodedSequence2b& genome, const vector<size_t> &SA)
 {
-    size_t n = s.length() ;                                     // longueur du motif
+    size_t n = genome.totalLength() ;                                     // longueur du motif
 	vector<size_t> LCP(n,0) ;                                     // initialisation de la table LCP (Longuest Common Prefixes)
 
-	string p1(""),p2("");                                       // initialisation des préfixes
+	EncodedSequence2b p1, p2;                                       // initialisation des préfixes
 	size_t lg(0);
 	size_t j=0;
 	
 	for (size_t i=0 ; i<n-1; ++i )
-	{
-        p1 = s.substr(SA[i]) ;                                  // préfixe avant de la table des suffixes
-        p2 = s.substr(SA[i+1]) ;                                // préfixe après de la table des suffixes
+	{	// finir la surcharge de l'operator (size_t, size_t x= fin) 
+        p1 = genome(SA[i]);                                  // préfixe avant de la table des suffixes
+        p2 = genome(SA[i+1]);                                // préfixe après de la table des suffixes
         //size_t lg(0);
-        lg = (p1.size() <= p2.size()) ? p1.size() : p2.size() ;  // définir le suffixe le plus court
+        lg = (p1.totalLength() <= p2.totalLength()) ? p1.totalLength() : p2.totalLength() ;  // définir le suffixe le plus court
 	  
-	  j=0;
+	    j=0;
+	    cout<<"lg = "<<lg<<" p1 = "<< p1 <<" p2 = "<<p2<<endl;
         while(j<lg and 	p1[j] == p2[j])
         {
         	LCP[i+1] = ++j;

@@ -20,10 +20,10 @@ public:
 	//virtual void print();
 
 	virtual void setSymbolAt(size_t i, char c);
-	virtual EncodedSequence& reverseComplement() const ;
+	virtual EncodedSequence2b reverseComplement() const ;
 	virtual char operator[](size_t i) const;   // remplace la methode getSymbolAt(size_t i). commence à 0 ou 1?
-	virtual EncodedSequence2b& operator()(size_t start, size_t end=0) const ;  //remplace la methode  getSubSequence() avec parametre par defaut
-	virtual EncodedSequence& operator=(const EncodedSequence& es);  // operateur affectation.	
+	virtual EncodedSequence2b operator()(size_t start, size_t end=-1) const ;  //remplace la methode  getSubSequence() avec parametre par defaut
+	virtual EncodedSequence2b& operator=(const EncodedSequence2b& es);  // operateur affectation.	
 
 	virtual ~EncodedSequence2b();
 };

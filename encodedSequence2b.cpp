@@ -130,7 +130,7 @@ void EncodedSequence2b::loadAFasta(string leFichier)
 		exit(0);
 	}
 	string ligne;
-	size_t it = (size_t) 0, p = (size_t) -1, nbSeq = (size_t) 0, longueur = (size_t) 0; 
+	size_t it = (size_t) 0, p = (size_t) -1, nbSeq = (size_t) 0; 
 	while(getline(fichier, ligne))
 	{
 		if (ligne[0] == '>')
@@ -145,6 +145,7 @@ void EncodedSequence2b::loadAFasta(string leFichier)
     		{
     			if (estValide(ligne[i]))
     			{
+    				longueur++;
     				longueurDeSequences.at(nbSeq-1)++;
     			}
     		}
@@ -162,7 +163,7 @@ void EncodedSequence2b::loadAFasta(string leFichier)
             //cout << endl << "On se trouve au " << fichier.tellg() << "ieme octet." << endl;
     }
 
-    longueur = totalLength();
+    //longueur = totalLength();
     cout<<"Longueur de la sequence = ";
 	for (size_t i = 0; i < longueurDeSequences.size(); ++i)
 	{
@@ -218,7 +219,7 @@ void EncodedSequence2b::loadAFasta(string leFichier)
 /*
 	void EncSeq::write(ostream & os)
 	{
-		for(size-t i = 0; i<n; i++)
+		for(size_t i = 0; i<n; i++)
 		{
 			os<<operator[](i);
 		}
@@ -236,7 +237,7 @@ void EncodedSequence2b::loadAFastq(string leFichier)
 		exit(0);
 	}
 	string ligne;
-	size_t it = (size_t) 0, p = (size_t) -1, nbSeq = (size_t) 0, longueur = (size_t) 0, numligne = (size_t) 1; 
+	size_t it = (size_t) 0, p = (size_t) -1, nbSeq = (size_t) 0, numligne = (size_t) 1; 
 	
 	while(getline(fichier, ligne))
 	{
@@ -255,6 +256,7 @@ void EncodedSequence2b::loadAFastq(string leFichier)
     		{
     			if (estValide(ligne[i]))
     			{
+    				longueur++;
     				longueurDeSequences.at(nbSeq-1)++;
     			}
     		}
@@ -289,7 +291,7 @@ void EncodedSequence2b::loadAFastq(string leFichier)
         fichier.seekg(0, ios::beg);
     }
 
-    longueur = totalLength(); 
+    //longueur = totalLength(); 
     numligne = (size_t) 1;
     cout<<"Longueur total de la sequence = "<<longueur<<endl;
 
@@ -322,14 +324,16 @@ void EncodedSequence2b::loadAFastq(string leFichier)
 
 EncodedSequence2b::EncodedSequence2b() 
 {	
+	longueur = 0;
 	longueurDeSequences = vector<size_t>() ;
 	lesIntitules = vector<string>() ;
 	tab = NULL;
-	cout<<"EncodedSequence2b()"<<endl;
+	//cout<<"EncodedSequence2b()"<<endl;
 }
 
 EncodedSequence2b::EncodedSequence2b(const char* raw_seq)
 {
+	longueur = 0;
 	longueurDeSequences = vector<size_t>() ;
 	lesIntitules = vector<string>() ;
 	tab = NULL;
@@ -339,6 +343,7 @@ EncodedSequence2b::EncodedSequence2b(const char* raw_seq)
 
 EncodedSequence2b::EncodedSequence2b(string leFichier, bool isAFasta) 
 {
+	longueur = 0;
 	longueurDeSequences = vector<size_t>() ;
 	lesIntitules = vector<string>() ;
 	tab = NULL;
@@ -360,11 +365,12 @@ EncodedSequence2b::EncodedSequence2b(const EncodedSequence2b & es)  // construct
 {
 	cout<<"EncodedSequence2b(const EncodedSequence2b).- constructeur par copie"<<endl;
 	
+	longueur = es.longueur;
 	lesIntitules = es.getIntitules();
 	lesSeqQualites = es.getLesSeqQualites();
 	longueurDeSequences = es.length();   // vector
 
-	if (totalLength())
+	if (longueur)
 	{
 		size_t lg = totalLength()/4 + (totalLength()%4 != 0) ;
 		tab = new unsigned char[lg];   // on alloue de la memoire
@@ -388,7 +394,7 @@ void EncodedSequence2b::setSymbolAt(size_t i, char c)  //ne marche pas tres bien
 	if (estValide(c))
 	{
 		//printOctet(c);
-		tab[donneOctect(i) >> (donnePositionOctect(i) & 3)] |= encode(c)<<donnePositionOctect(i) ; // <<1 est = *2;  ((!(i&1))<<2) pour version 2 bits 
+		tab[donneOctect(i) >> donnePositionOctect(i)& 3] |= encode(c)<<donnePositionOctect(i); // <<1 est = *2;  ((!(i&1))<<2) pour version 2 bits 
 	}
 	else
 	{
@@ -396,9 +402,10 @@ void EncodedSequence2b::setSymbolAt(size_t i, char c)  //ne marche pas tres bien
 	}
 }
 
-EncodedSequence& EncodedSequence2b::reverseComplement() const
+EncodedSequence2b EncodedSequence2b::reverseComplement() const
 {
 	EncodedSequence2b es;
+	es.tab = new unsigned char[longueur];
 	return es;
 }
 
@@ -408,30 +415,39 @@ char EncodedSequence2b::operator[](size_t i) const
 	return decode(tab[donneOctect(i)] >> donnePositionOctect(i) & 3); //i%4 est egal a &3
 }
 
-EncodedSequence2b& EncodedSequence2b::operator()(size_t start, size_t end) const
+EncodedSequence2b EncodedSequence2b::operator()(size_t start, size_t end) const
 {
-	if (end-start <= 0)
+	if (end < start)
 	{
 		cout<<"Attention aux valeurs données"<<endl;
 		exit(0);
 	}
 
-	EncodedSequence2b *es;
-	unsigned char* tableau = new unsigned char[(end - start)/4 + ((end - start)%4 != 0)];
-
-	size_t startBin = donneOctect(start) >> donnePositionOctect(start) & 3;
-	size_t endBin = donneOctect(end) >> donnePositionOctect(end) & 3;
-
-	for (size_t i = startBin; i <= endBin; ++i)
+	if (end > longueur)
 	{
-		tableau[i] = this->tab[i];
+		end = longueur;
 	}
-	es->tab = tableau;
-	cout<<es<<endl;
-	return *es;
+
+	EncodedSequence2b sseq;
+	sseq.longueur = (end-start);
+	//cout<<"longueur = "<<sseq.longueur<<endl;
+
+	size_t lg = sseq.longueur/4 + ((sseq.longueur%4) != 0);
+	sseq.tab = new unsigned char[lg];
+
+	for (size_t i = 0; i < lg; ++i)
+	{
+		sseq.tab[i] = 0;
+	}
+	for (size_t i = start; i < end; ++i)
+	{
+		sseq.setSymbolAt(i-start, (*this)[i]);
+	}
+	//cout<<"ok"<<endl;
+	return sseq;
 }
 
-EncodedSequence& EncodedSequence2b::operator=(const EncodedSequence & es)
+EncodedSequence2b& EncodedSequence2b::operator=(const EncodedSequence2b & es)
 {
 	cout<<"EncodedSequence& operator=(const EncodedSequence& es) - operateur affectation"<<endl;
 	if (this != &es)
@@ -483,6 +499,6 @@ EncodedSequence2b::~EncodedSequence2b()
 	if (tab != NULL)
 	{
 		delete[] tab;
-		cout<<"~EncodedSequence2b()"<<endl;
+		//cout<<"~EncodedSequence2b()"<<endl;
 	}
 }
