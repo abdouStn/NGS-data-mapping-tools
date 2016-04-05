@@ -2,12 +2,6 @@
 
 using namespace std;
 
-/*
-TABLE DES SUFFIXES
-  0123456789
-S.ROUDOUDOU$
-SA[0--9]
-*/
 
 SAcomp::SAcomp(const EncodedSequence &es) : es(es){}
 
@@ -26,7 +20,7 @@ bool SAcomp::operator()(size_t a, size_t b) const
     return (a>=n)||((b<n) && (es[a]<es[b]));
 }
 
-vector<size_t> buildSA(const SequenceFastX & s)   // construction de la table des suffixes
+vector<size_t> buildSA(const SequenceFastA & s)   // construction de la table des suffixes
 {
 	size_t n = s.encodage->totalLength();
 	vector<size_t> SA(n);
@@ -44,36 +38,24 @@ vector<size_t> buildSA(const SequenceFastX & s)   // construction de la table de
 }
 
 
-vector<size_t> buildLCP(const EncodedSequence2b& genome, const vector<size_t> &SA)
+vector<size_t> buildLCP(const SequenceFastA& genome, const vector<size_t> &SA)
 {
     size_t n = genome.totalLength() ;                                     // longueur du motif
 	vector<size_t> LCP(n,0) ;                                     // initialisation de la table LCP (Longuest Common Prefixes)
-
-	EncodedSequence2b p1, p2;                                       // initialisation des préfixes
-	size_t lg(0);
-	size_t j=0;
+	size_t p1 = 0, p2 = 0;
 	
 	for (size_t i=0 ; i<n-1; ++i )
-	{	// finir la surcharge de l'operator (size_t, size_t x= fin) 
-        p1 = genome(SA[i]);                                  // préfixe avant de la table des suffixes
-        p2 = genome(SA[i+1]);                                // préfixe après de la table des suffixes
-        //size_t lg(0);
-        lg = (p1.totalLength() <= p2.totalLength()) ? p1.totalLength() : p2.totalLength() ;  // définir le suffixe le plus court
-	  
-	    j=0;
-	    cout<<"lg = "<<lg<<" p1 = "<< p1 <<" p2 = "<<p2<<endl;
-        while(j<lg and 	p1[j] == p2[j])
+	{	
+		
+        LCP[i] = 0;
+        p1 = SA[i];
+        p2 = SA[i+1];
+
+        while( (p1 < n) and (p2 < n) and ((*(genome.encodage))[p1] == (*(genome.encodage))[p2]) ) 
         {
-        	LCP[i+1] = ++j;
+        	LCP[i] = LCP[i] + 1;
+        	p1++; p2++;
         }		
-	  /*	
-        for ( size_t j=0; j<lg; ++j)                               // Pour chaque caractère du préfixe le plus court
-        {
-            if ( p1[j] == p2[j] ) {
-                LCP[i+1] = j ;                                  // affecter à LCP la longueur du plus long préfixe commun
-            }
-        }*/
-        //cout << p1 << " " << p2 << " - lg: " << lg << endl ;
 	}
 
 	return LCP ;
@@ -83,7 +65,7 @@ vector<size_t> buildLCP(const EncodedSequence2b& genome, const vector<size_t> &S
  * s : une séquence ("ROUDOUDOU")
  * SA : la table de suffixe de la séquence
 */
-string buildBWT(const string &s, const vector<size_t> &SA)
+/*string buildBWT(const string &s, const vector<size_t> &SA)
 {
     size_t n = s.length() ;
 	string BWT ;
@@ -97,4 +79,5 @@ string buildBWT(const string &s, const vector<size_t> &SA)
         }
 	}
 	return BWT ;
-}
+}*/
+	

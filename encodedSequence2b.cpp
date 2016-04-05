@@ -347,7 +347,8 @@ EncodedSequence2b::EncodedSequence2b(string leFichier, bool isAFasta)
 	longueurDeSequences = vector<size_t>() ;
 	lesIntitules = vector<string>() ;
 	tab = NULL;
-	
+	//cout<<"encodedSequence2b(string, bool)"<<endl;
+
 	if (isAFasta)
 	{
 		loadAFasta(leFichier);
@@ -361,11 +362,11 @@ EncodedSequence2b::EncodedSequence2b(string leFichier, bool isAFasta)
 		cout<<"Je ne sais pas si c'est un fasta ou un fastq"<<endl;		
 }
 
-EncodedSequence2b::EncodedSequence2b(const EncodedSequence2b & es)  // constructeur par copie ()
+EncodedSequence2b::EncodedSequence2b(const EncodedSequence& es)  // constructeur par copie ()
 {
-	cout<<"EncodedSequence2b(const EncodedSequence2b).- constructeur par copie"<<endl;
+	//cout<<__FUNCTION__<<" - constructeur par copie"<<endl;
 	
-	longueur = es.longueur;
+	longueur = es.totalLength();
 	lesIntitules = es.getIntitules();
 	lesSeqQualites = es.getLesSeqQualites();
 	longueurDeSequences = es.length();   // vector
@@ -394,7 +395,9 @@ void EncodedSequence2b::setSymbolAt(size_t i, char c)  //ne marche pas tres bien
 	if (estValide(c))
 	{
 		//printOctet(c);
-		tab[donneOctect(i) >> donnePositionOctect(i)& 3] |= encode(c)<<donnePositionOctect(i); // <<1 est = *2;  ((!(i&1))<<2) pour version 2 bits 
+		unsigned char &m = tab[donneOctect(i)];   // on recupere l'octect
+		m &= ~(3 << donnePositionOctect(i));		// On met le masque 3 (11) a la place des 2  bites puis on remet tout a zero (negation)
+		m |= encode(c)<<donnePositionOctect(i); //  Ensuite un ou avec le caract concerné  <<1 est = *2;  ((!(i&1))<<2) pour version 2 bits 
 	}
 	else
 	{
@@ -415,7 +418,7 @@ char EncodedSequence2b::operator[](size_t i) const
 	return decode(tab[donneOctect(i)] >> donnePositionOctect(i) & 3); //i%4 est egal a &3
 }
 
-EncodedSequence2b EncodedSequence2b::operator()(size_t start, size_t end) const
+EncodedSequence &EncodedSequence2b::operator()(size_t start, size_t end) const
 {
 	if (end < start)
 	{
@@ -428,33 +431,34 @@ EncodedSequence2b EncodedSequence2b::operator()(size_t start, size_t end) const
 		end = longueur;
 	}
 
-	EncodedSequence2b sseq;
-	sseq.longueur = (end-start);
+	EncodedSequence2b * sseq = new EncodedSequence2b();
+	sseq->longueur = (end-start);
 	//cout<<"longueur = "<<sseq.longueur<<endl;
 
-	size_t lg = sseq.longueur/4 + ((sseq.longueur%4) != 0);
-	sseq.tab = new unsigned char[lg];
+	size_t lg = sseq->longueur/4 + ((sseq->longueur%4) != 0);
+	sseq->tab = new unsigned char[lg];
 
 	for (size_t i = 0; i < lg; ++i)
 	{
-		sseq.tab[i] = 0;
+		sseq->tab[i] = 0;
 	}
 	for (size_t i = start; i < end; ++i)
 	{
-		sseq.setSymbolAt(i-start, (*this)[i]);
+		sseq->setSymbolAt(i-start, (*this)[i]);
 	}
 	//cout<<"ok"<<endl;
-	return sseq;
+	return *sseq;
 }
 
-EncodedSequence2b& EncodedSequence2b::operator=(const EncodedSequence2b & es)
+EncodedSequence& EncodedSequence2b::operator=(const EncodedSequence & es)
 {
-	cout<<"EncodedSequence& operator=(const EncodedSequence& es) - operateur affectation"<<endl;
-	if (this != &es)
+	cout<<__FUNCTION__<<" - operateur affectation 2b"<<endl;
+	/*if (this != &es)
 	{
 		lesIntitules = es.getIntitules();
 		lesSeqQualites = es.getLesSeqQualites();
 		longueurDeSequences = es.length();   // vector
+		longueur = es.totalLength();
 
 		delete[] tab;
 		tab = new unsigned char[es.totalLength()/4 + (es.totalLength()%4 != 0)];   // on alloue de la memoire
@@ -465,40 +469,51 @@ EncodedSequence2b& EncodedSequence2b::operator=(const EncodedSequence2b & es)
 		}
 	}
 
-	/*
-		size_t lg = es.n/4 +((s.n & 3) > 0);
+	*/
+		size_t lg = es.totalLength()/4 +((es.totalLength() & 3) > 0);
 
 		if(totalLength() != es.totalLength())
 		{
-			if (totalLength())
+			if (tab)
 			{
 				delete[] tab;
 				tab = NULL;		
 			}
-			n = es.n;
-			if (n)
+			longueur = es.totalLength();
+			if (longueur)
 			{
 				tab = new unsigned char[lg];
 			}
 		}
-		if (n)
+		if (es.totalLength())
 		{
-			for (int i = 0; i < lg; ++i)
+			for (size_t i = 0; i < lg; ++i)
 			{
-				tab[i] = es.tab[i]
+				tab[i] = es.tab[i];
 			}
 		}
-
-	*/
 
 	return *this;	
 }
 
+bool EncodedSequence2b::operator==(const EncodedSequence& es) const
+{
+	size_t i = 0;
+	if (longueur != es.totalLength())
+	{
+		cout<<__FUNCTION__<<" : Longueurs de sequences inégales. "<<longueur<<" "<<es.totalLength()<<endl;
+	}
+	else
+	{	
+		while ( i < longueur and (*this)[i] == es[i] )
+		{
+			++i;
+		}
+	}
+	return (i==longueur);
+}
+
 EncodedSequence2b::~EncodedSequence2b()
 {
-	if (tab != NULL)
-	{
-		delete[] tab;
-		//cout<<"~EncodedSequence2b()"<<endl;
-	}
+	
 }

@@ -13,7 +13,7 @@ public:
 	SequenceFastA(const char * seq);
 	SequenceFastA(std::string leFichier);
 	SequenceFastA(const SequenceFastA & s);
-	//virtual SequenceFastA& operator=(const SequenceFastA & s);
+	//virtual SequenceFastX& operator=(const SequenceFastX& s);
 	
 	
 	virtual ~SequenceFastA();

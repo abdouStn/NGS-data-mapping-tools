@@ -27,9 +27,18 @@ vector<string> EncodedSequence::getLesSeqQualites() const
 	return lesSeqQualites;
 }
 
+EncodedSequence::EncodedSequence():lesIntitules(), lesSeqQualites(), longueurDeSequences(), longueur(0) 
+{
+}
+
 EncodedSequence::~EncodedSequence()
 {
 	//cout<<"~EncodedSequence()"<<endl;
+	if (tab != NULL)
+	{
+		delete[] tab;
+		//cout<<"~EncodedSequence2b()"<<endl;
+	}
 }
 
 ostream & operator<<(ostream& os, const EncodedSequence & es)

@@ -24,7 +24,8 @@ protected:
 	virtual void loadAFasta(std::string leFichier) = 0;
 public:
 	unsigned char* tab;					// concatenation des sequences.
-	/*EncodedSequence();
+	EncodedSequence();
+/*
 	EncodedSequence(const char* raw_seq);
 	EncodedSequence(std::string leFichier);
 	EncodedSequence(const EncodedSequence & es);  // constructeur par copie*/
@@ -37,8 +38,9 @@ public:
 	virtual void setSymbolAt(size_t i, char c) = 0;
 	//virtual EncodedSequence& reverseComplement() const = 0 ;
 	virtual char operator[](size_t i) const = 0;   // remplace la methode getSymbolAt(size_t i). commence à 0 ou 1?
-	//virtual EncodedSequence& operator()(size_t start, size_t end=-1) const = 0;  //remplace la methode  getSubSequence() avec parametre par defaut
-	//virtual EncodedSequence& operator=(const EncodedSequence& es) = 0;  // operateur affectation.
+	virtual EncodedSequence &operator()(size_t start, size_t end=-1) const = 0;  //remplace la methode  getSubSequence() avec parametre par defaut
+	virtual EncodedSequence& operator=(const EncodedSequence& es) = 0;  // operateur affectation.
+	virtual bool operator==(const EncodedSequence& es) const = 0;  // operateur d'égalité.	
 	//virtual void print() = 0;
 	virtual ~EncodedSequence();
 

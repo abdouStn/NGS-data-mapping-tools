@@ -9,7 +9,7 @@ SequenceFastX::sequenceFastX(const SequenceFastX & s)
 	encodage (p.encodage);
 }*/
 
-vector<size_t> SequenceFastX::length() const
+vector<size_t> SequenceFastX::getLongueurDeSequences() const
 {
 	return encodage->length();
 }
@@ -19,23 +19,43 @@ size_t SequenceFastX::totalLength() const
 	return encodage->totalLength();
 }
 
-vector<string> SequenceFastX::getIntitules() const
+vector<string> SequenceFastX::getLesIntitules() const
 {
 	return encodage->getIntitules();
 }
 
+void SequenceFastX::setLongueurDeSequences(vector<size_t> v)
+{
+	longueurDeSequences = v;
+}
+void SequenceFastX::setLesIntitules(vector<string> v)
+{
+	lesIntitules = v;
+	
+}
+
+void SequenceFastX::setLongueur(size_t l)
+{
+	//longueur = l;
+}
+
+
+
 SequenceFastX::~SequenceFastX()
 {
-	cout<<"~SequenceFastX()"<<endl;
-	encodage->~EncodedSequence(); // appel au destructeur
+	//cout<<"~SequenceFastX()"<<endl;
+	if (encodage!=NULL)
+	{
+		delete encodage;	
+	}
 }
 
 ostream & operator<<(ostream& os, const SequenceFastX & s)
 {
-	os<<s.getIntitules().size()<<" seq Fasta: "<<endl;
-	for (size_t i = 0; i < s.getIntitules().size(); ++i)
+	os<<s.getLesIntitules().size()<<" seq Fasta: "<<endl;
+	for (size_t i = 0; i < s.getLesIntitules().size(); ++i)
 	{
-		os<<s.getIntitules().at(i)<<endl;
+		os<<s.getLesIntitules().at(i)<<endl;
 	}
 	os<<*(s.encodage)<<endl;
 	

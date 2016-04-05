@@ -11,8 +11,8 @@ SequenceFastQ::SequenceFastQ()
 SequenceFastQ::SequenceFastQ(string leFichier)
 {
 	encodage = new EncodedSequence2b(leFichier, false);
-	lesIntitules = this->getIntitules();
-	longueurDeSequences = this->length();
+	lesIntitules = this->getLesIntitules();
+	longueurDeSequences = this->getLongueurDeSequences();
 }
 
 void SequenceFastQ::print()
@@ -28,5 +28,10 @@ void SequenceFastQ::print()
 
 SequenceFastQ::~SequenceFastQ()
 {
-	cout<<"~SequenceFastQ()"<<endl;
+	//cout<<"~SequenceFastQ()"<<endl;
+
+	/*if (encodage!=NULL)
+	{
+		delete encodage;	
+	}*/
 }
