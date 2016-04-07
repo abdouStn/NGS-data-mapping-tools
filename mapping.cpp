@@ -116,23 +116,24 @@ void Mapping::constuireKMers2(size_t longueurKMers)
 
 void Mapping::mapAkmer(const vector<size_t>& SA, const vector<size_t>& LCP, const KMer& k, size_t lgKmer) const
 {
-	size_t deb = 0, fin = SA.size(), milieu = 0, i = 0, j=0, lcpUp=0, lcpDown=0;
+	size_t deb = 0, fin = SA.size(), milieu = 0, i = 0, j=0, lcpUp=0, lcpDown=0, r=0;
     bool trouve = false;
-    EncodedSequence& seqKmer = (*(reads->encodage))(k.getPositionDebutReads(),k.getPositionDebutReads() + lgKmer);
+    
     
     while(!trouve && (fin - deb) > 1)
     {
 		milieu = (fin + deb) /2;
-   		i  = 0;	j=SA[milieu];
+   		i  = 0;	j=SA[milieu]; r=k.getPositionDebutReads();
+
    		//cout <<"i = "<<i<< " j = "<<j<<" milieu "<<milieu<<" "<<(*(genome->encodage))[j] << " "<<kmer[i]<<endl;
-   		while(i<lgKmer and j<genome->totalLength() and (*(genome->encodage))[j] == seqKmer[i]) 
+   		while(i<lgKmer and j<genome->totalLength() and (*(genome->encodage))[j] == (*(reads->encodage))[r]) 
    		{
    			//cout<< (*(genome->encodage))[j] << " x "<<kmer[i]<<endl;
-   			i++; j++;
+   			i++; j++; r++;
    		}
-   		trouve = (i>=lgKmer || (j>genome->totalLength() and (*(genome->encodage))[j] == seqKmer[i])) ? true : false;
+   		trouve = (i>=lgKmer || (j>genome->totalLength() and (*(genome->encodage))[j] == (*(reads->encodage))[r])) ? true : false;
    		
-		if((*(genome->encodage))[j] > seqKmer[i] )
+		if((*(genome->encodage))[j] > (*(reads->encodage))[r] )
 		{	
 			fin = milieu;
 		}
@@ -146,6 +147,7 @@ void Mapping::mapAkmer(const vector<size_t>& SA, const vector<size_t>& LCP, cons
     
     if(trouve)
     {
+    	EncodedSequence& seqKmer = (*(reads->encodage))(k.getPositionDebutReads(),k.getPositionDebutReads() + lgKmer);
     	//LCP
     	lcpDown = lcpUp = milieu;
 		cout<<endl<<"====="<<seqKmer << k <<" positions mappées: "<<"{ ";
@@ -164,8 +166,9 @@ void Mapping::mapAkmer(const vector<size_t>& SA, const vector<size_t>& LCP, cons
     	}
     	while(LCP[lcpDown++] >= lgKmer);
     	cout<<"}"<<endl;    
+    	delete &seqKmer;
     }
-    delete &seqKmer;
+    
 }
 
 void Mapping::mapAkmerApproche(const vector<size_t>& SA, const vector<size_t>& LCP, const KMer& k, size_t lgKmer) const
